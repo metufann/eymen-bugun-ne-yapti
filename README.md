@@ -28,7 +28,7 @@ npm install
 Proje kök dizinindeki `.env` dosyasını açıp kendi Supabase proje bilgilerinizi girin:
 
 ```env
-VITE_SUPABASE_URL=https://xxxxxxxxxxxxxxxxxxxx.supabase.co
+VITE_SUPABASE_UR=https://xxxxxxxxxxxxxxxxxxxx.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJh......
 ```
 
@@ -77,7 +77,7 @@ npm run build
 1. Projeyi GitHub reponuza push edin.
 2. [Vercel](https://vercel.com)'de **New Project** diyerek reponuzu bağlayın.
 3. **Environment Variables** bölümüne şunları ekleyin:
-   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_UR`
    - `VITE_SUPABASE_ANON_KEY`
 4. **Deploy** butonuna tıklayın.
 
