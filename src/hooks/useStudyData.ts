@@ -139,6 +139,63 @@ export function useStudyData() {
     }
   };
 
+  const completeStudy = async (
+    id: string,
+    results: { correct: number; wrong: number; minutes?: number; wrong_reviewed?: boolean }
+  ) => {
+    const previous = studies.find((s) => s.id === id);
+
+    // Optimistic update
+    setStudies((prev) =>
+      prev.map((s) =>
+        s.id === id
+          ? {
+              ...s,
+              completed: true,
+              correct: results.correct,
+              wrong: results.wrong,
+              wrong_reviewed: results.wrong_reviewed ?? false,
+              minutes: results.minutes !== undefined ? results.minutes : s.minutes,
+            }
+          : s
+      )
+    );
+
+    try {
+      const updated = await studyService.completeStudy(id, results);
+      setStudies((prev) => prev.map((s) => (s.id === id ? updated : s)));
+      return { success: true };
+    } catch (err: unknown) {
+      console.error('Failed to complete study:', err);
+      // Revert if failed
+      if (previous) {
+        setStudies((prev) => prev.map((s) => (s.id === id ? previous : s)));
+      }
+      const msg = err instanceof Error ? err.message : 'Görev tamamlanırken hata oluştu.';
+      return { success: false, error: msg };
+    }
+  };
+
+  const deleteStudy = async (id: string) => {
+    const previous = studies.find((s) => s.id === id);
+
+    // Optimistic removal
+    setStudies((prev) => prev.filter((s) => s.id !== id));
+
+    try {
+      await studyService.deleteStudy(id);
+      return { success: true };
+    } catch (err: unknown) {
+      console.error('Failed to delete study:', err);
+      // Revert optimistic removal
+      if (previous) {
+        setStudies((prev) => [...prev, previous]);
+      }
+      const msg = err instanceof Error ? err.message : 'Görev silinirken hata oluştu.';
+      return { success: false, error: msg };
+    }
+  };
+
   return {
     studies,
     todayStudies,
@@ -149,6 +206,8 @@ export function useStudyData() {
     error,
     addStudy,
     toggleComplete,
+    completeStudy,
+    deleteStudy,
     refreshStudies: fetchStudies,
     isConfigured: isSupabaseConfigured,
   };

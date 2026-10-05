@@ -2,7 +2,6 @@ import React, { useMemo } from 'react';
 import type { StudySession } from '../types/database';
 import { calculateSummary, calculateSubjectBreakdown } from '../utils/statistics';
 import { DailySummary } from '../components/DailySummary';
-import { BarChart3, Award, BookMarked, TrendingUp } from 'lucide-react';
 
 export interface StatisticsProps {
   studies: StudySession[];
@@ -13,7 +12,6 @@ export const Statistics: React.FC<{ studies: StudySession[] }> = ({ studies }) =
   const overallSummary = useMemo(() => calculateSummary(studies), [studies]);
   const subjectStats = useMemo(() => calculateSubjectBreakdown(studies), [studies]);
 
-  // Last 7 days calculations
   const last7DaysStats = useMemo(() => {
     const now = new Date();
     const past7Date = new Date();
@@ -27,50 +25,49 @@ export const Statistics: React.FC<{ studies: StudySession[] }> = ({ studies }) =
   const topSubject = subjectStats.length > 0 ? subjectStats[0] : null;
 
   return (
-    <div className="space-y-8 animate-fade-in">
-      {/* Top Header */}
+    <div className="space-y-6">
+      {/* Header */}
       <div>
-        <h2 className="text-xl font-black tracking-tight text-white flex items-center gap-2">
-          <BarChart3 className="w-5 h-5 text-primary-light" />
-          Performans & İstatistik Paneli
+        <h2 className="text-base font-bold text-slate-900 tracking-tight">
+          Performans Analizi
         </h2>
-        <p className="text-xs text-slate-400">
-          Tüm zamanlar ve ders bazlı detaylı soru çözüm analizi
+        <p className="text-xs text-slate-500">
+          Tüm zamanlar ve ders bazlı soru dağılımı
         </p>
       </div>
 
       {/* Genel Özet */}
-      <DailySummary summary={overallSummary} title="TÜM ZAMANLARIN GENEL ÖZETİ" />
+      <DailySummary summary={overallSummary} title="Tüm Zamanların Özeti" />
 
-      {/* Highlight cards */}
+      {/* 2-column breakdown */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Son 7 Gün */}
-        <div className="glass-panel rounded-2xl p-5 border border-white/10 space-y-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold tracking-widest text-slate-400 uppercase flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-accent-teal" /> Son 7 Günün Tempoyu
+        <div className="bg-white rounded-xl p-5 border border-slate-200 space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+            <span className="text-xs font-semibold text-slate-700">
+              Son 7 Günlük Tempo
             </span>
-            <span className="text-xs font-mono font-bold text-accent-teal">
-              Haftalık İlerleme
+            <span className="text-xs font-mono text-primary font-medium">
+              Haftalık
             </span>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
-            <div className="bg-black/20 rounded-xl p-3 border border-white/5">
-              <div className="text-[10px] text-slate-400 font-bold uppercase">Soru</div>
-              <div className="text-xl font-mono font-bold text-white">
+          <div className="grid grid-cols-3 gap-2">
+            <div className="bg-slate-50 rounded-lg p-3 border border-slate-100">
+              <div className="text-[11px] text-slate-500">Soru</div>
+              <div className="text-xl font-mono font-bold text-slate-900 mt-0.5">
                 {last7DaysStats.totalQuestions}
               </div>
             </div>
-            <div className="bg-black/20 rounded-xl p-3 border border-white/5">
-              <div className="text-[10px] text-slate-400 font-bold uppercase">Süre</div>
-              <div className="text-xl font-mono font-bold text-accent-teal">
-                {last7DaysStats.totalMinutes} <span className="text-xs font-normal">dk</span>
+            <div className="bg-slate-50 rounded-lg p-3 border border-slate-100">
+              <div className="text-[11px] text-slate-500">Süre</div>
+              <div className="text-xl font-mono font-bold text-slate-900 mt-0.5">
+                {last7DaysStats.totalMinutes} <span className="text-xs font-normal text-slate-500">dk</span>
               </div>
             </div>
-            <div className="bg-black/20 rounded-xl p-3 border border-white/5">
-              <div className="text-[10px] text-slate-400 font-bold uppercase">Başarı</div>
-              <div className="text-xl font-mono font-bold text-accent-amber">
+            <div className="bg-slate-50 rounded-lg p-3 border border-slate-100">
+              <div className="text-[11px] text-slate-500">Başarı</div>
+              <div className="text-xl font-mono font-bold text-primary mt-0.5">
                 %{last7DaysStats.accuracy}
               </div>
             </div>
@@ -78,71 +75,70 @@ export const Statistics: React.FC<{ studies: StudySession[] }> = ({ studies }) =
         </div>
 
         {/* En Çok Çalışılan Ders */}
-        <div className="glass-panel rounded-2xl p-5 border border-white/10 space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold tracking-widest text-slate-400 uppercase flex items-center gap-2">
-              <Award className="w-4 h-4 text-accent-amber" /> En Çok Çalışılan Ders
+        <div className="bg-white rounded-xl p-5 border border-slate-200 space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+            <span className="text-xs font-semibold text-slate-700">
+              En Çok Çalışılan Ders
             </span>
-            <span className="text-xs font-mono text-emerald-400 font-bold">1. Sırada</span>
+            <span className="text-xs font-mono text-slate-500">Lider</span>
           </div>
 
           {topSubject ? (
-            <div className="flex items-center justify-between pt-2">
+            <div className="flex items-center justify-between pt-1">
               <div>
-                <div className="text-2xl font-black text-white tracking-tight">
+                <div className="text-lg font-bold text-slate-900">
                   {topSubject.subject}
                 </div>
-                <div className="text-xs text-slate-400 font-mono mt-1">
-                  {topSubject.totalQuestions} Soru • {topSubject.totalMinutes} Dk Çalışma
+                <div className="text-xs text-slate-500 font-mono mt-0.5">
+                  {topSubject.totalQuestions} Soru • {topSubject.totalMinutes} Dk
                 </div>
               </div>
 
               <div className="text-right">
-                <div className="text-2xl font-mono font-extrabold text-accent-amber">
+                <div className="text-2xl font-mono font-bold text-primary">
                   %{topSubject.accuracy}
                 </div>
-                <div className="text-[10px] text-slate-400 uppercase font-bold">
-                  Net Doğruluk Oranı
+                <div className="text-[11px] text-slate-500 font-medium">
+                  Doğruluk
                 </div>
               </div>
             </div>
           ) : (
-            <div className="text-sm text-slate-500 py-3">Veri bulunmuyor.</div>
+            <div className="text-xs text-slate-400 py-3">Veri bulunmuyor.</div>
           )}
         </div>
       </div>
 
-      {/* Ders Bazında Dağılım */}
-      <div className="glass-panel rounded-2xl p-6 border border-white/10 space-y-4">
-        <h3 className="text-sm font-bold text-white tracking-wide flex items-center gap-2">
-          <BookMarked className="w-4 h-4 text-primary-light" />
-          Ders Bazında Başarı & Soru Dağılımı
+      {/* Ders Dağılımı */}
+      <div className="bg-white rounded-xl p-5 border border-slate-200 space-y-4">
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+          Ders Bazında Soru Dağılımı
         </h3>
 
         {subjectStats.length === 0 ? (
-          <div className="text-sm text-slate-500 text-center py-6">
+          <div className="text-xs text-slate-400 text-center py-6">
             Henüz analiz edilecek ders verisi bulunmuyor.
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {subjectStats.map((sub) => {
               const maxQuestions = topSubject ? topSubject.totalQuestions : 1;
-              const barWidth = Math.max(5, Math.round((sub.totalQuestions / maxQuestions) * 100));
+              const barWidth = Math.max(4, Math.round((sub.totalQuestions / maxQuestions) * 100));
 
               return (
-                <div key={sub.subject} className="space-y-1.5">
+                <div key={sub.subject} className="space-y-1">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="font-bold text-white tracking-wide">
+                    <span className="font-medium text-slate-900">
                       {sub.subject}
                     </span>
-                    <span className="font-mono text-slate-300">
-                      {sub.totalQuestions} soru ({sub.totalCorrect}D / {sub.totalWrong}Y) • <strong className="text-accent-amber">%{sub.accuracy}</strong>
+                    <span className="font-mono text-slate-600">
+                      {sub.totalQuestions} soru ({sub.totalCorrect}D / {sub.totalWrong}Y) • <strong className="text-slate-900">%{sub.accuracy}</strong>
                     </span>
                   </div>
 
-                  <div className="h-2 rounded-full bg-white/5 overflow-hidden flex items-center">
+                  <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden flex items-center">
                     <div
-                      className="h-full rounded-full bg-gradient-to-r from-primary to-accent-teal transition-all duration-500"
+                      className="h-full rounded-full bg-primary"
                       style={{ width: `${barWidth}%` }}
                     />
                   </div>

@@ -80,6 +80,59 @@ export const studyService = {
     return data as StudySession;
   },
 
+  async completeStudy(
+    id: string,
+    results: { correct: number; wrong: number; minutes?: number; wrong_reviewed?: boolean }
+  ): Promise<StudySession> {
+    if (!isSupabaseConfigured) {
+      throw new Error('Supabase bağlantısı henüz yapılandırılmamış');
+    }
+
+    const updates: Record<string, unknown> = {
+      completed: true,
+      correct: results.correct,
+      wrong: results.wrong,
+    };
+
+    if (results.wrong_reviewed !== undefined) {
+      updates.wrong_reviewed = results.wrong_reviewed;
+    }
+
+    if (results.minutes !== undefined && results.minutes > 0) {
+      updates.minutes = results.minutes;
+    }
+
+    const { data, error } = await supabase
+      .from('study_sessions')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      // If error is caused by missing wrong_reviewed column in Supabase, retry without it
+      if (error.message?.includes('wrong_reviewed') || error.code === 'PGRST204') {
+        const fallbackUpdates = { ...updates };
+        delete fallbackUpdates.wrong_reviewed;
+        const fallbackRes = await supabase
+          .from('study_sessions')
+          .update(fallbackUpdates)
+          .eq('id', id)
+          .select()
+          .single();
+        if (fallbackRes.error) {
+          console.error('Error completing study session on fallback:', fallbackRes.error);
+          throw fallbackRes.error;
+        }
+        return { ...(fallbackRes.data as StudySession), wrong_reviewed: results.wrong_reviewed };
+      }
+      console.error('Error completing study session:', error);
+      throw error;
+    }
+
+    return data as StudySession;
+  },
+
   async updateStudy(id: string, updates: Partial<CreateStudySessionInput>): Promise<StudySession> {
     if (!isSupabaseConfigured) {
       throw new Error('Supabase bağlantısı henüz yapılandırılmamış');
@@ -98,5 +151,21 @@ export const studyService = {
     }
 
     return data as StudySession;
+  },
+
+  async deleteStudy(id: string): Promise<void> {
+    if (!isSupabaseConfigured) {
+      throw new Error('Supabase bağlantısı henüz yapılandırılmamış');
+    }
+
+    const { error } = await supabase
+      .from('study_sessions')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error deleting study session:', error);
+      throw error;
+    }
   },
 };

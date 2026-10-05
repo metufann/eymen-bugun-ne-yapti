@@ -7,11 +7,19 @@ export interface StudySession {
   correct: number;
   wrong: number;
   completed: boolean;
+  wrong_reviewed?: boolean;
   created_at: string;
   updated_at: string;
 }
 
 export type CreateStudySessionInput = Omit<StudySession, 'id' | 'created_at' | 'updated_at'>;
+
+export interface CompleteStudySessionInput {
+  correct: number;
+  wrong: number;
+  minutes?: number;
+  wrong_reviewed: boolean;
+}
 
 export interface Settings {
   id: string;

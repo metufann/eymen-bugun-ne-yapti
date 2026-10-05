@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { LGS_SUBJECTS, type CreateStudySessionInput } from '../types/database';
 import { getTodayDateString } from '../utils/date';
-import { X, Plus, AlertCircle, Loader2 } from 'lucide-react';
+import { X, Loader2 } from 'lucide-react';
 
 interface AddStudyModalProps {
   isOpen: boolean;
@@ -16,9 +16,7 @@ export const AddStudyModal: React.FC<AddStudyModalProps> = ({
 }) => {
   const [subject, setSubject] = useState<string>(LGS_SUBJECTS[0]);
   const [questions, setQuestions] = useState<string>('30');
-  const [minutes, setMinutes] = useState<string>('45');
-  const [correct, setCorrect] = useState<string>('26');
-  const [wrong, setWrong] = useState<string>('4');
+  const [minutes, setMinutes] = useState<string>('40');
   const [date, setDate] = useState<string>(getTodayDateString());
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -30,52 +28,35 @@ export const AddStudyModal: React.FC<AddStudyModalProps> = ({
     setError(null);
 
     const qNum = parseInt(questions, 10);
-    const mNum = parseInt(minutes, 10);
-    const cNum = parseInt(correct, 10);
-    const wNum = parseInt(wrong, 10);
+    const mNum = parseInt(minutes, 10) || 0;
 
-    // Validation rules
     if (!subject) {
       setError('Lütfen bir ders seçin.');
       return;
     }
-    if (isNaN(qNum) || qNum < 0) {
-      setError('Soru sayısı 0 veya daha büyük olmalıdır.');
-      return;
-    }
-    if (isNaN(mNum) || mNum < 0) {
-      setError('Süre negatif olamaz.');
-      return;
-    }
-    if (isNaN(cNum) || cNum < 0) {
-      setError('Doğru sayısı negatif olamaz.');
-      return;
-    }
-    if (isNaN(wNum) || wNum < 0) {
-      setError('Yanlış sayısı negatif olamaz.');
-      return;
-    }
-    if (cNum + wNum > qNum) {
-      setError(`Doğru (${cNum}) ve yanlış (${wNum}) toplamı, soru sayısını (${qNum}) geçemez.`);
+    if (isNaN(qNum) || qNum <= 0) {
+      setError('Çözülecek soru sayısı en az 1 olmalıdır.');
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const res = await onAddStudy({
+      const payload: CreateStudySessionInput = {
         subject,
         questions: qNum,
         minutes: mNum,
-        correct: cNum,
-        wrong: wNum,
+        correct: 0,
+        wrong: 0,
         completed: false,
         date: date || getTodayDateString(),
-      });
+      };
+
+      const res = await onAddStudy(payload);
 
       if (res.success) {
         onClose();
       } else {
-        setError(res.error || 'Kayıt eklenirken bir sorun oluştu.');
+        setError(res.error || 'Görev eklenirken bir sorun oluştu.');
       }
     } finally {
       setIsSubmitting(false);
@@ -83,47 +64,44 @@ export const AddStudyModal: React.FC<AddStudyModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fade-in">
-      <div className="w-full max-w-lg glass-panel rounded-3xl p-6 sm:p-7 border border-white/10 shadow-2xl relative animate-slide-up">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fade-in">
+      <div className="w-full max-w-md bg-white rounded-2xl p-6 border border-slate-200 shadow-modal relative animate-slide-up">
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-white/5 mb-5">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-primary/20 flex items-center justify-center text-primary-light">
-              <Plus className="w-4 h-4" />
-            </div>
-            <h3 className="text-lg font-bold text-white tracking-tight">
-              Yeni Çalışma Görevi Ekle
+        <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+          <div>
+            <h3 className="text-base font-semibold text-slate-900">
+              Yeni Çalışma Hedefi Ekle
             </h3>
+            <p className="text-xs text-slate-500">
+              Ders ve çözülecek soru sayısını belirleyin
+            </p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+            className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Error message */}
         {error && (
-          <div className="mb-4 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 flex-shrink-0 text-rose-400" />
-            <span>{error}</span>
+          <div className="mb-4 p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs">
+            {error}
           </div>
         )}
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
-              Ders Seçin
+            <label className="block text-xs font-medium text-slate-700 mb-1">
+              Ders
             </label>
             <select
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-surface-100 border border-white/10 text-white font-medium focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all cursor-pointer"
+              className="w-full px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-900 text-sm font-medium focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary cursor-pointer"
             >
               {LGS_SUBJECTS.map((s) => (
-                <option key={s} value={s} className="bg-surface-200 text-white">
+                <option key={s} value={s}>
                   {s}
                 </option>
               ))}
@@ -132,105 +110,68 @@ export const AddStudyModal: React.FC<AddStudyModalProps> = ({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
-                Soru Sayısı
+              <label className="block text-xs font-medium text-slate-700 mb-1">
+                Çözülecek Soru
               </label>
               <input
                 type="number"
-                min="0"
+                min="1"
                 value={questions}
                 onChange={(e) => setQuestions(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-surface-100 border border-white/10 text-white font-mono focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
-                placeholder="Örn: 40"
+                className="w-full px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-900 font-mono text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                placeholder="30"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
-                Süre (Dakika)
+              <label className="block text-xs font-medium text-slate-700 mb-1">
+                Tahmini Süre (Dk)
               </label>
               <input
                 type="number"
                 min="0"
                 value={minutes}
                 onChange={(e) => setMinutes(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-surface-100 border border-white/10 text-white font-mono focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
-                placeholder="Örn: 50"
-                required
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-emerald-400 mb-1.5">
-                Doğru Sayısı
-              </label>
-              <input
-                type="number"
-                min="0"
-                value={correct}
-                onChange={(e) => setCorrect(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-surface-100 border border-white/10 text-emerald-300 font-mono focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all"
-                placeholder="Örn: 35"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-rose-400 mb-1.5">
-                Yanlış Sayısı
-              </label>
-              <input
-                type="number"
-                min="0"
-                value={wrong}
-                onChange={(e) => setWrong(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-surface-100 border border-white/10 text-rose-300 font-mono focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition-all"
-                placeholder="Örn: 5"
-                required
+                className="w-full px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-900 font-mono text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                placeholder="40"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
-              Çalışma Tarihi
+            <label className="block text-xs font-medium text-slate-700 mb-1">
+              Tarih
             </label>
             <input
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl bg-surface-100 border border-white/10 text-white font-mono focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+              className="w-full px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-900 font-mono text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
               required
             />
           </div>
 
-          {/* Action buttons */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/5">
+          <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+              className="px-4 py-2 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
             >
               İptal
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold text-xs tracking-wider uppercase transition-all duration-200 shadow-glow-primary hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 cursor-pointer"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white font-medium text-xs transition-colors disabled:opacity-50 cursor-pointer"
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Kaydediliyor...</span>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>Ekleniyor...</span>
                 </>
               ) : (
-                <>
-                  <Plus className="w-4 h-4" />
-                  <span>Görevi Ekle</span>
-                </>
+                <span>Hedefi Ekle</span>
               )}
             </button>
           </div>

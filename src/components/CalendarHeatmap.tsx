@@ -1,6 +1,6 @@
 import React from 'react';
-import { formatDateTurkish } from '../utils/date';
 import type { StudySession } from '../types/database';
+import { formatDateTurkish } from '../utils/date';
 
 interface CalendarHeatmapProps {
   sessions: StudySession[];
@@ -11,7 +11,6 @@ export const CalendarHeatmap: React.FC<CalendarHeatmapProps> = ({
   sessions,
   onSelectDate,
 }) => {
-  // Generate the last 35 days (5 weeks) for high visual density and clean look
   const days: { dateStr: string; questions: number; count: number }[] = [];
   const map = new Map<string, { questions: number; count: number }>();
 
@@ -39,54 +38,53 @@ export const CalendarHeatmap: React.FC<CalendarHeatmapProps> = ({
     });
   }
 
-  // Intensity color function
   const getIntensityClass = (q: number) => {
-    if (q === 0) return 'bg-white/5 border-white/5 hover:border-white/20';
-    if (q < 30) return 'bg-primary/30 border-primary/40 hover:border-primary';
-    if (q < 60) return 'bg-primary/60 border-primary/70 hover:border-primary';
-    if (q < 100) return 'bg-primary border-primary-light hover:border-white shadow-glow-primary';
-    return 'bg-accent-teal border-teal-300 hover:border-white shadow-glow-teal';
+    if (q === 0) return 'bg-slate-100 hover:bg-slate-200 border-slate-200 text-slate-400';
+    if (q < 30) return 'bg-orange-100 border-orange-200 text-orange-800';
+    if (q < 60) return 'bg-orange-300 border-orange-400 text-orange-950 font-semibold';
+    if (q < 100) return 'bg-primary text-white border-orange-500 font-semibold';
+    return 'bg-orange-700 text-white border-orange-800 font-bold';
   };
 
   return (
-    <div className="glass-panel rounded-2xl p-5 border border-white/10 space-y-4">
+    <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-bold text-white tracking-wide">
+          <h3 className="text-sm font-semibold text-slate-900">
             Son 35 Günün Çalışma Yoğunluğu
           </h3>
-          <p className="text-xs text-slate-400">
-            Daha koyu ve parlak kutular daha yüksek soru sayısını temsil eder.
+          <p className="text-xs text-slate-500">
+            Kutuların renk koyuluğu çözülen soru sayısını gösterir
           </p>
         </div>
 
         {/* Legend */}
-        <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-mono">
+        <div className="flex items-center gap-1.5 text-[11px] text-slate-500 font-mono">
           <span>Az</span>
-          <div className="w-2.5 h-2.5 rounded bg-white/5 border border-white/10"></div>
-          <div className="w-2.5 h-2.5 rounded bg-primary/40 border border-primary/50"></div>
-          <div className="w-2.5 h-2.5 rounded bg-primary border border-primary-light"></div>
-          <div className="w-2.5 h-2.5 rounded bg-accent-teal border border-teal-300"></div>
+          <div className="w-2.5 h-2.5 rounded bg-slate-100 border border-slate-200"></div>
+          <div className="w-2.5 h-2.5 rounded bg-orange-100 border border-orange-200"></div>
+          <div className="w-2.5 h-2.5 rounded bg-orange-300 border border-orange-400"></div>
+          <div className="w-2.5 h-2.5 rounded bg-primary border border-orange-500"></div>
           <span>Çok</span>
         </div>
       </div>
 
-      <div className="grid grid-cols-7 gap-2 pt-1">
+      <div className="grid grid-cols-7 gap-1.5 pt-1">
         {days.map((item) => (
           <div
             key={item.dateStr}
             onClick={() => onSelectDate?.(item.dateStr)}
             title={`${formatDateTurkish(item.dateStr)}: ${item.questions} soru (${item.count} ders)`}
-            className={`aspect-square rounded-xl border flex flex-col items-center justify-center cursor-pointer transition-all duration-200 hover:scale-110 p-1.5 ${getIntensityClass(
+            className={`aspect-square rounded-lg border flex flex-col items-center justify-center cursor-pointer transition-transform hover:scale-105 p-1 ${getIntensityClass(
               item.questions
             )}`}
           >
-            <span className="text-[10px] font-mono text-slate-300 font-medium">
+            <span className="text-[10px] font-mono leading-none">
               {item.dateStr.split('-')[2]}
             </span>
             {item.questions > 0 && (
-              <span className="text-[9px] font-mono font-bold text-white truncate max-w-full">
-                {item.questions}s
+              <span className="text-[9px] font-mono leading-none mt-1 truncate max-w-full">
+                {item.questions}
               </span>
             )}
           </div>

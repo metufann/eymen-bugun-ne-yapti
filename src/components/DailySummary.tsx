@@ -1,6 +1,5 @@
 import React from 'react';
 import type { SummaryStats } from '../utils/statistics';
-import { HelpCircle, Clock, CheckCircle2, XCircle, Trophy } from 'lucide-react';
 
 interface DailySummaryProps {
   summary: SummaryStats;
@@ -9,94 +8,69 @@ interface DailySummaryProps {
 
 export const DailySummary: React.FC<DailySummaryProps> = ({
   summary,
-  title = "BUGÜNÜN ÖZETİ"
+  title = "Bugünün Özeti"
 }) => {
-  const cards = [
+  const metrics = [
     {
-      label: 'TOPLAM SORU',
+      label: 'Toplam Soru',
       value: summary.totalQuestions,
       unit: 'adet',
-      icon: HelpCircle,
-      color: 'text-primary-light',
-      bg: 'bg-primary/10',
-      border: 'border-primary/20',
     },
     {
-      label: 'TOPLAM SÜRE',
+      label: 'Çalışma Süresi',
       value: summary.totalMinutes,
       unit: 'dk',
-      icon: Clock,
-      color: 'text-accent-teal',
-      bg: 'bg-accent-teal/10',
-      border: 'border-accent-teal/20',
     },
     {
-      label: 'DOĞRU',
+      label: 'Doğru',
       value: summary.totalCorrect,
-      unit: 'net/d',
-      icon: CheckCircle2,
-      color: 'text-emerald-400',
-      bg: 'bg-emerald-500/10',
-      border: 'border-emerald-500/20',
+      unit: 'd',
+      color: 'text-slate-900',
     },
     {
-      label: 'YANLIŞ',
+      label: 'Yanlış',
       value: summary.totalWrong,
-      unit: 'adet',
-      icon: XCircle,
-      color: 'text-rose-400',
-      bg: 'bg-rose-500/10',
-      border: 'border-rose-500/20',
+      unit: 'y',
+      color: summary.totalWrong > 0 ? 'text-amber-600' : 'text-slate-900',
     },
     {
-      label: 'BAŞARI ORANI',
+      label: 'Başarı Oranı',
       value: `${summary.accuracy}%`,
       unit: 'isabet',
-      icon: Trophy,
-      color: 'text-accent-amber',
-      bg: 'bg-accent-amber/10',
-      border: 'border-accent-amber/20',
+      color: 'text-primary font-bold',
     },
   ];
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xs font-bold tracking-widest text-slate-400 uppercase">
+    <div className="pb-6 border-b border-slate-200">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
           {title}
         </h2>
-        <span className="text-[11px] text-slate-400 font-medium">
-          {summary.totalCompleted}/{summary.totalTasks} görev tamamlandı
+        <span className="text-xs text-slate-500 font-medium">
+          {summary.totalCompleted} / {summary.totalTasks} görev tamamlandı
         </span>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-        {cards.map((card, idx) => {
-          const Icon = card.icon;
-          return (
-            <div
-              key={idx}
-              className={`glass-panel rounded-2xl p-4 border ${card.border} transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg relative overflow-hidden`}
-            >
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] font-bold tracking-wider text-slate-400">
-                  {card.label}
-                </span>
-                <div className={`p-1.5 rounded-lg ${card.bg} ${card.color}`}>
-                  <Icon className="w-3.5 h-3.5" />
-                </div>
-              </div>
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white font-mono">
-                  {card.value}
-                </span>
-                <span className="text-[11px] text-slate-400 font-medium">
-                  {card.unit}
-                </span>
-              </div>
+        {metrics.map((m, idx) => (
+          <div
+            key={idx}
+            className="bg-white rounded-xl border border-slate-200 p-3.5"
+          >
+            <div className="text-[11px] font-medium text-slate-500 mb-1">
+              {m.label}
             </div>
-          );
-        })}
+            <div className="flex items-baseline gap-1">
+              <span className={`text-2xl font-bold font-mono tracking-tight ${m.color || 'text-slate-900'}`}>
+                {m.value}
+              </span>
+              <span className="text-xs text-slate-400 font-mono">
+                {m.unit}
+              </span>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

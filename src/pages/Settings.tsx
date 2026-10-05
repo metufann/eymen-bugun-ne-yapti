@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { Settings as SettingsType } from '../types/database';
 import { formatDateTurkish } from '../utils/date';
-import { Settings as SettingsIcon, Calendar, Check, AlertCircle, Loader2, Database, ShieldCheck } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 interface SettingsProps {
   settings: SettingsType | null;
@@ -29,7 +29,7 @@ export const SettingsPage: React.FC<SettingsProps> = ({
     try {
       const res = await onUpdateLgsDate(lgsDateInput);
       if (res.success) {
-        setMessage({ type: 'success', text: 'LGS Hedef tarihi başarıyla güncellendi!' });
+        setMessage({ type: 'success', text: 'Hedef sınav tarihi güncellendi.' });
       } else {
         setMessage({ type: 'error', text: res.error || 'Güncelleme başarısız oldu.' });
       }
@@ -39,129 +39,92 @@ export const SettingsPage: React.FC<SettingsProps> = ({
   };
 
   return (
-    <div className="space-y-8 animate-fade-in max-w-2xl mx-auto">
+    <div className="space-y-6 max-w-xl">
       <div>
-        <h2 className="text-xl font-black tracking-tight text-white flex items-center gap-2">
-          <SettingsIcon className="w-5 h-5 text-primary-light" />
-          Uygulama Ayarları
+        <h2 className="text-base font-bold text-slate-900 tracking-tight">
+          Ayarlar
         </h2>
-        <p className="text-xs text-slate-400">
-          LGS hedef sınav tarihi ve merkezi veritabanı ayarlarını yapılandırın
+        <p className="text-xs text-slate-500">
+          Sınav hedef tarihi ve sistem durumu
         </p>
       </div>
 
-      {/* LGS Target Date Card */}
-      <div className="glass-panel rounded-2xl p-6 border border-white/10 space-y-6">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary-light">
-            <Calendar className="w-5 h-5" />
-          </div>
-          <div>
-            <h3 className="text-sm font-bold text-white tracking-wide">
-              LGS Sınav Hedef Tarihi
-            </h3>
-            <p className="text-xs text-slate-400">
-              Geri sayım sayacı tüm cihazlarda bu tarihe göre gerçek zamanlı hesaplanır.
-            </p>
-          </div>
+      {/* Target Date Card */}
+      <div className="bg-white rounded-xl p-5 border border-slate-200 space-y-4">
+        <div>
+          <h3 className="text-sm font-semibold text-slate-900">
+            LGS Sınav Tarihi
+          </h3>
+          <p className="text-xs text-slate-500">
+            Sayaç bu tarihe göre gün sayısını hesaplar.
+          </p>
         </div>
 
         {message && (
           <div
-            className={`p-4 rounded-xl border text-xs flex items-center gap-2.5 ${
+            className={`p-3 rounded-lg text-xs ${
               message.type === 'success'
-                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300'
-                : 'bg-rose-500/10 border-rose-500/20 text-rose-300'
+                ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                : 'bg-rose-50 text-rose-800 border border-rose-200'
             }`}
           >
-            {message.type === 'success' ? (
-              <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-            ) : (
-              <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0" />
-            )}
-            <span>{message.text}</span>
+            {message.text}
           </div>
         )}
 
-        <form onSubmit={handleSave} className="space-y-4">
+        <form onSubmit={handleSave} className="space-y-3">
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
-              Hedef Tarih Seçin
+            <label className="block text-xs font-medium text-slate-700 mb-1">
+              Tarih Seçin
             </label>
             <input
               type="date"
               value={lgsDateInput}
               onChange={(e) => setLgsDateInput(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-surface-100 border border-white/10 text-white font-mono focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all cursor-pointer"
+              className="w-full px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-900 font-mono text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary cursor-pointer"
               required
             />
           </div>
 
-          <div className="p-3 bg-black/20 rounded-xl border border-white/5 text-xs text-slate-400 flex items-center justify-between font-mono">
-            <span>Şu anki hedef:</span>
-            <span className="font-bold text-white">
-              {formatDateTurkish(lgsDateInput)}
-            </span>
+          <div className="text-xs text-slate-500 font-mono">
+            Şu anki hedef: <strong className="text-slate-800">{formatDateTurkish(lgsDateInput)}</strong>
           </div>
 
-          <div className="flex justify-end">
+          <div className="flex justify-end pt-2">
             <button
               type="submit"
               disabled={saving}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold text-xs tracking-wider uppercase transition-all duration-200 shadow-glow-primary hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 cursor-pointer"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white font-medium text-xs transition-colors disabled:opacity-50 cursor-pointer"
             >
               {saving ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
                   <span>Kaydediliyor...</span>
                 </>
               ) : (
-                <>
-                  <Check className="w-4 h-4" />
-                  <span>Ayarları Kaydet</span>
-                </>
+                <span>Tarihi Kaydet</span>
               )}
             </button>
           </div>
         </form>
       </div>
 
-      {/* Supabase Status info */}
-      <div className="glass-panel rounded-2xl p-6 border border-white/10 space-y-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-accent-teal/10 border border-accent-teal/20 flex items-center justify-center text-accent-teal">
-            <Database className="w-5 h-5" />
-          </div>
-          <div>
-            <h3 className="text-sm font-bold text-white tracking-wide">
-              Merkezi Veritabanı Durumu (Supabase)
-            </h3>
-            <p className="text-xs text-slate-400">
-              PostgreSQL tabanlı gerçek zamanlı veri eşitleme
-            </p>
-          </div>
-        </div>
-
-        <div className="p-4 rounded-xl bg-black/20 border border-white/5 space-y-2 text-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-slate-400">Bağlantı Yapılandırması:</span>
-            <span
-              className={`font-mono font-bold px-2 py-0.5 rounded-full ${
-                isConfigured
-                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                  : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-              }`}
-            >
-              {isConfigured ? 'AKTİF & BAĞLI' : 'YAPILANDIRMA BEKLİYOR (.env)'}
-            </span>
-          </div>
-
-          <div className="flex items-center justify-between pt-1">
-            <span className="text-slate-400">Güvenlik Mimarisi:</span>
-            <span className="text-slate-200 flex items-center gap-1 font-mono">
-              <ShieldCheck className="w-3.5 h-3.5 text-accent-teal" /> Public RLS Active
-            </span>
-          </div>
+      {/* Database Status Card */}
+      <div className="bg-white rounded-xl p-5 border border-slate-200 space-y-2">
+        <h3 className="text-sm font-semibold text-slate-900">
+          Veritabanı Durumu
+        </h3>
+        <div className="flex items-center justify-between text-xs pt-1">
+          <span className="text-slate-600">Supabase Bağlantısı:</span>
+          <span
+            className={`font-mono px-2 py-0.5 rounded text-[11px] font-medium ${
+              isConfigured
+                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                : 'bg-amber-50 text-amber-700 border border-amber-200'
+            }`}
+          >
+            {isConfigured ? 'Bağlı' : 'Yapılandırılmadı'}
+          </span>
         </div>
       </div>
     </div>

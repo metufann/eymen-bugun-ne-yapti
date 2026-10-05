@@ -7,7 +7,7 @@ import { Statistics } from './pages/Statistics';
 import { SettingsPage } from './pages/Settings';
 import { useStudyData } from './hooks/useStudyData';
 import { useSettings } from './hooks/useSettings';
-import { AlertCircle, RefreshCw, LayoutGrid, CalendarDays, BarChart3, Settings as SettingsIcon } from 'lucide-react';
+import { AlertCircle, RefreshCw } from 'lucide-react';
 
 export const App: React.FC = () => {
   const [currentTab, setCurrentTab] = useState<TabType>('today');
@@ -21,6 +21,8 @@ export const App: React.FC = () => {
     error: studiesError,
     addStudy,
     toggleComplete,
+    completeStudy,
+    deleteStudy,
     refreshStudies,
     isConfigured,
   } = useStudyData();
@@ -33,14 +35,14 @@ export const App: React.FC = () => {
   } = useSettings();
 
   const tabs = [
-    { id: 'today' as TabType, label: 'Bugün', icon: LayoutGrid },
-    { id: 'history' as TabType, label: 'Geçmiş', icon: CalendarDays },
-    { id: 'stats' as TabType, label: 'İstatistikler', icon: BarChart3 },
-    { id: 'settings' as TabType, label: 'Ayarlar', icon: SettingsIcon },
+    { id: 'today' as TabType, label: 'Bugün' },
+    { id: 'history' as TabType, label: 'Geçmiş' },
+    { id: 'stats' as TabType, label: 'İstatistikler' },
+    { id: 'settings' as TabType, label: 'Ayarlar' },
   ];
 
   return (
-    <div className="min-h-screen bg-background text-slate-100 flex flex-col relative selection:bg-primary/30 selection:text-white ambient-glow">
+    <div className="min-h-screen bg-[#FAFAFA] text-slate-900 flex flex-col font-sans">
       {/* Top Navbar */}
       <Header
         currentTab={currentTab}
@@ -51,11 +53,11 @@ export const App: React.FC = () => {
 
       {/* Supabase Not Configured Warning Banner */}
       {!isConfigured && (
-        <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-3 text-center">
-          <div className="max-w-4xl mx-auto flex items-center justify-center gap-2 text-xs text-amber-300">
-            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+        <div className="bg-amber-50 border-b border-amber-200 px-4 py-2.5 text-center">
+          <div className="max-w-5xl mx-auto flex items-center justify-center gap-2 text-xs text-amber-800">
+            <AlertCircle className="w-4 h-4 flex-shrink-0 text-amber-600" />
             <span>
-              <strong>Supabase bağlantısı yapılandırılmamış:</strong> Lütfen proje ana dizinindeki <code>.env</code> dosyasındaki Supabase URL ve Anon Key değerlerini tanımlayın.
+              <strong>Veritabanı yapılandırması eksik:</strong> Lütfen proje ana dizinindeki <code>.env</code> dosyasındaki Supabase URL ve Anon Key değerlerini tanımlayın.
             </span>
           </div>
         </div>
@@ -63,17 +65,17 @@ export const App: React.FC = () => {
 
       {/* Main Error Banner */}
       {studiesError && (
-        <div className="max-w-4xl mx-auto mt-4 px-4 w-full">
-          <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-300 flex items-center justify-between gap-3 text-xs">
+        <div className="max-w-5xl mx-auto mt-4 px-4 w-full">
+          <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 flex items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-rose-400" />
+              <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0" />
               <span>Veriler yüklenirken bir sorun oluştu.</span>
             </div>
             <button
               onClick={refreshStudies}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-white font-semibold transition-colors cursor-pointer"
+              className="flex items-center gap-1 px-2.5 py-1 rounded bg-rose-100 hover:bg-rose-200 text-rose-900 font-medium transition-colors cursor-pointer"
             >
-              <RefreshCw className="w-3.5 h-3.5" />
+              <RefreshCw className="w-3 h-3" />
               Tekrar Dene
             </button>
           </div>
@@ -81,14 +83,16 @@ export const App: React.FC = () => {
       )}
 
       {/* Page Content Container */}
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 pb-28 sm:pb-24">
+      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-6 pb-24">
         {currentTab === 'today' && (
           <Dashboard
             todayStudies={todayStudies}
             todaySummary={todaySummary}
             loading={studiesLoading}
             onToggleComplete={toggleComplete}
+            onCompleteStudy={completeStudy}
             onAddStudy={addStudy}
+            onDelete={deleteStudy}
           />
         )}
 
@@ -109,7 +113,7 @@ export const App: React.FC = () => {
         )}
       </main>
 
-      {/* PS5-inspired discrete floating progress bar */}
+      {/* Discrete floating progress bar */}
       <Ps5Progress
         progress={todayProgress}
         completedTasks={todaySummary.totalCompleted}
@@ -117,23 +121,21 @@ export const App: React.FC = () => {
       />
 
       {/* Mobile Bottom Navigation Bar */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface-200/90 backdrop-blur-xl border-t border-white/5 px-2 py-2">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 px-4 py-2.5 shadow-sm">
         <div className="flex items-center justify-around">
           {tabs.map((tab) => {
-            const Icon = tab.icon;
             const isActive = currentTab === tab.id;
             return (
               <button
                 key={tab.id}
                 onClick={() => setCurrentTab(tab.id)}
-                className={`flex flex-col items-center gap-1 py-1.5 px-3 rounded-xl transition-all cursor-pointer ${
+                className={`py-1 px-3 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
                   isActive
-                    ? 'text-primary-light font-bold'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'text-primary font-semibold bg-orange-50'
+                    : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                <Icon className={`w-5 h-5 ${isActive ? 'text-primary scale-110' : ''}`} />
-                <span className="text-[10px] tracking-tight">{tab.label}</span>
+                {tab.label}
               </button>
             );
           })}
