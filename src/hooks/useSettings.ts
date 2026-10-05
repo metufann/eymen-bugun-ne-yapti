@@ -63,7 +63,8 @@ export function useSettings() {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'settings' },
-        (payload) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (payload: { new: any; old: any }) => {
           if (payload.new && (payload.new as Settings).lgs_date) {
             setSettings(payload.new as Settings);
           }

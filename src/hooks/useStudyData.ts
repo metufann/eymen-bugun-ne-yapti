@@ -40,7 +40,8 @@ export function useStudyData() {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'study_sessions' },
-        (payload) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (payload: { eventType: string; new: any; old: any }) => {
           if (payload.eventType === 'INSERT') {
             const newRecord = payload.new as StudySession;
             setStudies((prev) => {
