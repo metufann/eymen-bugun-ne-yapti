@@ -1,18 +1,30 @@
 import React, { useMemo, useState } from 'react';
-import type { StudySession } from '../types/database';
+import type { StudySession, CompleteStudySessionInput } from '../types/database';
 import { groupSessionsByDate } from '../utils/statistics';
 import { formatDateTurkish } from '../utils/date';
 import { CalendarHeatmap } from '../components/CalendarHeatmap';
+import { StudyCard } from '../components/StudyCard';
+import { CompleteStudyModal } from '../components/CompleteStudyModal';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 
 interface HistoryProps {
   studies: StudySession[];
   loading: boolean;
+  onToggleComplete: (id: string, currentCompleted: boolean) => Promise<unknown>;
+  onCompleteStudy: (id: string, input: CompleteStudySessionInput) => Promise<{ success: boolean; error?: string }>;
+  onDelete: (id: string) => Promise<unknown>;
 }
 
-export const History: React.FC<HistoryProps> = ({ studies, loading }) => {
+export const History: React.FC<HistoryProps> = ({
+  studies,
+  loading,
+  onToggleComplete,
+  onCompleteStudy,
+  onDelete,
+}) => {
   const dayGroups = useMemo(() => groupSessionsByDate(studies), [studies]);
   const [expandedDates, setExpandedDates] = useState<Record<string, boolean>>({});
+  const [completingSession, setCompletingSession] = useState<StudySession | null>(null);
 
   const toggleExpand = (date: string) => {
     setExpandedDates((prev) => ({
@@ -90,6 +102,11 @@ export const History: React.FC<HistoryProps> = ({ studies, loading }) => {
                       </h3>
                       <p className="text-xs text-slate-500">
                         {group.sessions.length} ders oturumu
+                        {group.sessions.some((s) => !s.completed) && (
+                          <span className="ml-1.5 text-amber-700 font-medium">
+                            · {group.sessions.filter((s) => !s.completed).length} bekliyor
+                          </span>
+                        )}
                       </p>
                     </div>
                   </div>
@@ -120,42 +137,15 @@ export const History: React.FC<HistoryProps> = ({ studies, loading }) => {
 
                 {/* Expanded individual sessions */}
                 {isExpanded && (
-                  <div className="px-4 pb-2 pt-1 border-t border-slate-100 divide-y divide-slate-100 bg-slate-50/50">
+                  <div className="px-4 pb-4 pt-3 border-t border-slate-100 bg-slate-50/50 grid grid-cols-1 md:grid-cols-2 gap-3">
                     {group.sessions.map((session) => (
-                      <div
+                      <StudyCard
                         key={session.id}
-                        className="py-2.5 flex items-center justify-between gap-4 text-xs"
-                      >
-                        <div className="flex items-center gap-2">
-                          <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                          <span className="font-medium text-slate-900">
-                            {session.subject}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center gap-3 font-mono text-slate-600">
-                          <span>{session.questions} soru</span>
-                          {session.minutes > 0 && <span>{session.minutes} dk</span>}
-                          {session.completed ? (
-                            <>
-                              <span className="text-emerald-700">{session.correct}D</span>
-                              <span className="text-amber-700">{session.wrong}Y</span>
-                              <span className="text-[10px] text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                                Tamamlandı
-                              </span>
-                              {session.wrong_reviewed && (
-                                <span className="text-[10px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
-                                  İncelendi
-                                </span>
-                              )}
-                            </>
-                          ) : (
-                            <span className="text-[10px] text-slate-400 bg-slate-100 px-2 py-0.5 rounded">
-                              Devam Ediyor
-                            </span>
-                          )}
-                        </div>
-                      </div>
+                        session={session}
+                        onOpenCompleteModal={setCompletingSession}
+                        onToggleComplete={onToggleComplete}
+                        onDelete={onDelete}
+                      />
                     ))}
                   </div>
                 )}
@@ -164,6 +154,14 @@ export const History: React.FC<HistoryProps> = ({ studies, loading }) => {
           })
         )}
       </div>
+
+      <CompleteStudyModal
+        key={completingSession?.id ?? 'closed'}
+        isOpen={Boolean(completingSession)}
+        session={completingSession}
+        onClose={() => setCompletingSession(null)}
+        onComplete={onCompleteStudy}
+      />
     </div>
   );
 };

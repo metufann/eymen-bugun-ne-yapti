@@ -97,7 +97,13 @@ export const App: React.FC = () => {
         )}
 
         {currentTab === 'history' && (
-          <History studies={studies} loading={studiesLoading} />
+          <History
+            studies={studies}
+            loading={studiesLoading}
+            onToggleComplete={toggleComplete}
+            onCompleteStudy={completeStudy}
+            onDelete={deleteStudy}
+          />
         )}
 
         {currentTab === 'stats' && (
